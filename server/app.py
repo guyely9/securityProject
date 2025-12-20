@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import sqlite3
 import secrets
 from db import init_db, get_db
-from passwords import make_password
+from passwords import make_password , check_password
 from config import HASH_MODE
 
 app = Flask(__name__)
@@ -31,6 +31,25 @@ def register():
     conn.close()
     return jsonify({"ok": True, "endpoint": "register", "username": username}),201
 
+@app.post("/login")
+def login():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username", "")
+    password = data.get("password", "")
+    if not username or not password:
+        return jsonify({"ok": False, "error":"username or password are missing"}), 400
+    conn = get_db()
+    user = conn.execute("SELECT password_hash, salt, hash_mode FROM users WHERE username = ?", (username,)).fetchone()
+    conn.close()
+
+    if user is None:
+        return jsonify({"ok": False, "error":"username does not exist"}), 404
+    hash = user["password_hash"]
+    salt = user["salt"]
+    hash_mode = user["hash_mode"]
+    if not check_password(password, hash, salt, hash_mode):
+        return jsonify({"ok": False, "error":"wrong password"}), 401
+    return jsonify({"ok": True, "endpoint": "login", "username": username}),200
 
 
 if __name__ == "__main__":
