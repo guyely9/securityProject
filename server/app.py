@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify
 import sqlite3
 import secrets
-from db import init_db, get_db
+import pyotp
+from db import init_db, get_db, users_json
 from passwords import make_password , check_password
 from config import HASH_MODE
 
@@ -39,7 +40,7 @@ def login():
     if not username or not password:
         return jsonify({"ok": False, "error":"username or password are missing"}), 400
     conn = get_db()
-    user = conn.execute("SELECT password_hash, salt, hash_mode FROM users WHERE username = ?", (username,)).fetchone()
+    user = conn.execute("SELECT password_hash, salt, hash_mode, totp_secret FROM users WHERE username = ?", (username,)).fetchone()
     conn.close()
 
     if user is None:
@@ -49,9 +50,34 @@ def login():
     hash_mode = user["hash_mode"]
     if not check_password(password, hash, salt, hash_mode):
         return jsonify({"ok": False, "error":"wrong password"}), 401
-    return jsonify({"ok": True, "endpoint": "login", "username": username}),200
+    totp_secret = user["totp_secret"]
+    if totp_secret:
+        return jsonify({"ok": True, "endpoint": "login", "username": username,"need_totp" : True}),200
+    return jsonify({"ok": True, "endpoint": "login", "username": username,"need_totp": False}),200
+
+@app.post("/login_totp")
+def login_totp():
+    data = request.get_json(silent=True) or {}
+    username = data.get("username", "")
+    code = str(data.get("code", "")).strip()
+    if not username or not code:
+        return jsonify({"ok": False, "error":"username or code are missing"}), 400
+    conn = get_db()
+    row = conn.execute("SELECT totp_secret FROM users WHERE username = ?", (username,)).fetchone()
+    conn.close()
+
+    if row is None:
+        return jsonify({"ok": False, "error":"username does not exist"}), 404
+    totp_secret = row["totp_secret"]
+    if not totp_secret:
+        return jsonify({"ok": False, "error":"totp_secret does not needed"}), 400
+    totp = pyotp.TOTP(totp_secret)
+    if not totp.verify(code,valid_window=1):
+        return jsonify({"ok": False, "error":"wrong totp code"}), 401
+    return jsonify({"ok": True, "endpoint": "login_totp", "username": username}),200
 
 
 if __name__ == "__main__":
     init_db()
+    users_json()
     app.run(debug=True)
