@@ -5,7 +5,6 @@ from config import GROUP_SEED
 
 BASE_URL = "http://127.0.0.1:5000"
 
-
 def setup_and_save():
     users_data = []
 
@@ -33,7 +32,7 @@ def setup_and_save():
                 "totp_secret": otp_secret
             }
 
-            # ניסיון רישום בשרת
+            # רישום בשרת
             try:
                 response = requests.post(f"{BASE_URL}/register", json=user_info)
                 if response.status_code == 201:
