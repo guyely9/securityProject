@@ -12,6 +12,22 @@ from collections import  defaultdict, deque
 
 app = Flask(__name__)
 ip_list = defaultdict(deque)
+fail_logins = defaultdict(int)
+lock_time = defaultdict(int)
+
+
+def is_locked(username):
+    return time.time() < lock_time[username]
+
+def fail(username):
+    fail_logins[username] += 1
+    if fail_logins[username] >= config.LOCKOUT_TRY:
+        lock_time[username] = int(time.time()) + config.LOCKOUT_TIME
+        fail_logins[username] = 0
+
+def success(username):
+    fail_logins[username] =0
+    lock_time[username] =0
 
 def check_limit(ip):
     now = int(time.time())
@@ -64,6 +80,10 @@ def login():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     password = data.get("password", "")
+    if config.PROTECTION_FLAGS["lockout"]:
+        if is_locked(username):
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
+            return jsonify({"ok": False, "error":"account is locked now"}), 423
     ip= request.remote_addr or "unknown"
     if config.PROTECTION_FLAGS["rate_limit"]:
         if not check_limit(ip):
@@ -85,6 +105,8 @@ def login():
     salt = user["salt"]
     hash_mode = user["hash_mode"]
     if not check_password(password, hash, salt, hash_mode):
+        if config.PROTECTION_FLAGS["lockout"]:
+            fail(username)
         log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
                   result="wrong_password", latency_ms=t.ms())
         return jsonify({"ok": False, "error":"wrong password"}), 401
@@ -93,6 +115,8 @@ def login():
         log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
                   result="need_totp", latency_ms=t.ms())
         return jsonify({"ok": True, "endpoint": "login", "username": username,"need_totp" : True}),200
+    if config.PROTECTION_FLAGS["lockout"]:
+        success(username)
     log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
               result="login_success", latency_ms=t.ms())
     return jsonify({"ok": True, "endpoint": "login", "username": username,"need_totp": False}),200
@@ -103,6 +127,10 @@ def login_totp():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     code = str(data.get("code", "")).strip()
+    if config.PROTECTION_FLAGS["lockout"]:
+        if is_locked(username):
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
+            return jsonify({"ok": False, "error":"account is locking now"}), 423
     ip = request.remote_addr or "unknown"
     if config.PROTECTION_FLAGS["rate_limit"]:
         if not check_limit(ip):
@@ -127,9 +155,13 @@ def login_totp():
         return jsonify({"ok": False, "error":"totp_secret does not needed"}), 400
     totp = pyotp.TOTP(totp_secret)
     if not totp.verify(code,valid_window=1):
+        if config.PROTECTION_FLAGS["lockout"]:
+            fail(username)
         log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
                   result="wrong_totp", latency_ms=t.ms())
         return jsonify({"ok": False, "error":"wrong totp code"}), 401
+    if config.PROTECTION_FLAGS["lockout"]:
+        success(username)
     log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
               result="totp_success", latency_ms=t.ms())
     return jsonify({"ok": True, "endpoint": "login_totp", "username": username}),200
