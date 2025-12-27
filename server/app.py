@@ -11,7 +11,8 @@ from collections import  defaultdict, deque
 
 
 app = Flask(__name__)
-ip_list = defaultdict(deque)
+rate_buckets = {}
+rate_locked = set()
 fail_logins = defaultdict(int)
 lock_time = defaultdict(int)
 
@@ -29,15 +30,20 @@ def success(username):
     fail_logins[username] =0
     lock_time[username] =0
 
-def check_limit(ip):
-    now = int(time.time())
-    window = now - config.RATE_LIMIT_TIME
-    ip_try = ip_list[ip]
-    while ip_try and ip_try[0] < window:
-        ip_try.popleft()
-    if len(ip_try) >= config.RATE_LIMIT_TRY:
+
+def check_rate(username):
+    key = username or "__empty__"
+    now = time.time()
+    b= rate_buckets.get(key)
+    if b is None:
+        rate_buckets[key] = {"tokens": config.RATE_LIMIT_TRY -1.0,"last": now}
+        return True
+    elapsed = now - b["last"]
+    b["tokens"] = min(config.RATE_LIMIT_TRY, b["tokens"]+elapsed*config.RATE_REFILL)
+    b["last"] = now
+    if b["tokens"] <1.0:
         return False
-    ip_try.append(now)
+    b["tokens"] -= 1.0
     return True
 
 
@@ -74,6 +80,18 @@ def register():
               result="register_success", latency_ms=t.ms())
     return jsonify({"ok": True, "endpoint": "register", "username": username}),201
 
+@app.post("/admin/unlock")
+def admin_unlock():
+    data = request.get_json(silent=True) or {}
+    admin_key = data.get("admin_key", "")
+    username = data.get("username", "")
+    if admin_key != config.ADMIN_KEY:
+        return jsonify({"ok": False, "error": "invalid admin_key"}), 403
+    rate_locked.discard(username)
+    rate_buckets.pop(username, None)
+    return jsonify({"ok": True, "username": username}), 200
+
+
 @app.post("/login")
 def login():
     t=Timer()
@@ -84,10 +102,14 @@ def login():
         if is_locked(username):
             log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
             return jsonify({"ok": False, "error":"account is locked now"}), 423
-    ip= request.remote_addr or "unknown"
     if config.PROTECTION_FLAGS["rate_limit"]:
-        if not check_limit(ip):
+        if username in rate_locked:
             log_event(username=username,hash_mode = None, protection_flags= config.PROTECTION_FLAGS ,result="rate_limiting", latency_ms=t.ms())
+            return jsonify({"ok": False, "error": "too many attempts"}), 423
+        if not check_rate(username):
+            if config.RATE_HARD_LOCK:
+                rate_locked.add(username)
+            log_event(username= username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result= "rate_limiting", latency_ms=t.ms())
             return jsonify({"ok": False, "error": "too many attempts"}), 429
     if not username or not password:
         log_event(username = username or "", hash_mode=None,protection_flags= config.PROTECTION_FLAGS,
@@ -131,10 +153,16 @@ def login_totp():
         if is_locked(username):
             log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
             return jsonify({"ok": False, "error":"account is locking now"}), 423
-    ip = request.remote_addr or "unknown"
     if config.PROTECTION_FLAGS["rate_limit"]:
-        if not check_limit(ip):
-            log_event(username=username, hash_mode= None, protection_flags= config.PROTECTION_FLAGS, result= "rate_limiting", latency_ms=t.ms())
+        if username in rate_locked:
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
+                      result="rate_limiting", latency_ms=t.ms())
+            return jsonify({"ok": False, "error": "locked"}), 423
+        if not check_rate(username):
+            if config.RATE_HARD_LOCK:
+                rate_locked.add(username)
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
+                      result="rate_limiting", latency_ms=t.ms())
             return jsonify({"ok": False, "error": "too many attempts"}), 429
     if not username or not code:
         log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
