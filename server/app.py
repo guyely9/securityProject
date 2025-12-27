@@ -6,9 +6,24 @@ from db import init_db, get_db, users_json
 from passwords import make_password , check_password
 import config
 from logger import log_event, Timer
+import time
+from collections import  defaultdict, deque
 
 
 app = Flask(__name__)
+ip_list = defaultdict(deque)
+
+def check_limit(ip):
+    now = int(time.time())
+    window = now - config.RATE_LIMIT_TIME
+    ip_try = ip_list[ip]
+    while ip_try and ip_try[0] < window:
+        ip_try.popleft()
+    if len(ip_try) >= config.RATE_LIMIT_TRY:
+        return False
+    ip_try.append(now)
+    return True
+
 
 
 @app.post("/register")
@@ -49,6 +64,11 @@ def login():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     password = data.get("password", "")
+    ip= request.remote_addr or "unknown"
+    if config.PROTECTION_FLAGS["rate_limit"]:
+        if not check_limit(ip):
+            log_event(username=username,hash_mode = None, protection_flags= config.PROTECTION_FLAGS ,result="rate_limiting", latency_ms=t.ms())
+            return jsonify({"ok": False, "error": "too many attempts"}), 429
     if not username or not password:
         log_event(username = username or "", hash_mode=None,protection_flags= config.PROTECTION_FLAGS,
                   result= "missing_something", latency_ms=t.ms())
@@ -83,6 +103,11 @@ def login_totp():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     code = str(data.get("code", "")).strip()
+    ip = request.remote_addr or "unknown"
+    if config.PROTECTION_FLAGS["rate_limit"]:
+        if not check_limit(ip):
+            log_event(username=username, hash_mode= None, protection_flags= config.PROTECTION_FLAGS, result= "rate_limiting", latency_ms=t.ms())
+            return jsonify({"ok": False, "error": "too many attempts"}), 429
     if not username or not code:
         log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
                   result="missing_something", latency_ms=t.ms())
