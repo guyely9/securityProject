@@ -15,6 +15,21 @@ rate_buckets = {}
 rate_locked = set()
 fail_logins = defaultdict(int)
 lock_time = defaultdict(int)
+captcha_fails = defaultdict(int)
+captcha_required = defaultdict(bool)
+captcha_tokens = {}
+
+def delete_tokens():
+    now = int(time.time())
+    expired = []
+    for token, data in captcha_tokens.items():
+        if data['expires'] <= now:
+            expired.append(token)
+    for token in expired:
+        captcha_tokens.pop(token,None)
+
+def need_captcha(username):
+    return captcha_fails[username] >= config.CAPTCHA_FAIL
 
 
 def is_locked(username):
@@ -32,11 +47,10 @@ def success(username):
 
 
 def check_rate(username):
-    key = username or "__empty__"
     now = time.time()
-    b= rate_buckets.get(key)
+    b= rate_buckets.get(username)
     if b is None:
-        rate_buckets[key] = {"tokens": config.RATE_LIMIT_TRY -1.0,"last": now}
+        rate_buckets[username] = {"tokens": config.RATE_LIMIT_TRY -1.0,"last": now}
         return True
     elapsed = now - b["last"]
     b["tokens"] = min(config.RATE_LIMIT_TRY, b["tokens"]+elapsed*config.RATE_REFILL)
@@ -91,6 +105,17 @@ def admin_unlock():
     rate_buckets.pop(username, None)
     return jsonify({"ok": True, "username": username}), 200
 
+@app.get("/admin/get_captcha")
+def get_captcha():
+    group_seed = request.args.get("group_seed", "")
+    if str(group_seed) != str(config.GROUP_SEED):
+        return jsonify({"ok": False, "error": "invalid group_seed"}), 403
+    delete_tokens()
+    token = secrets.token_urlsafe(16)
+    captcha_tokens[token] = {
+        "expires": int(time.time()) + config.CAPTCHA_TIME
+    }
+    return jsonify({"ok": True, "token": token}), 200
 
 @app.post("/login")
 def login():
@@ -98,6 +123,16 @@ def login():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     password = data.get("password", "")
+    if config.PROTECTION_FLAGS["captcha"] and captcha_required[username]:
+        token = data.get("token", "")
+        delete_tokens()
+        if not token or token not in captcha_tokens or captcha_tokens[token]["expires"] <= int(time.time()):
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result = "captcha_required", latency_ms=t.ms())
+            return jsonify({"ok": False, "captcha_required": True}), 403
+        captcha_tokens.pop(token, None)
+        #captcha_required[username] = False
+        #captcha_fails[username] = 0
+        log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result= "captcha_token_used", latency_ms=t.ms())
     if config.PROTECTION_FLAGS["lockout"]:
         if is_locked(username):
             log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
@@ -129,9 +164,14 @@ def login():
     if not check_password(password, hash, salt, hash_mode):
         if config.PROTECTION_FLAGS["lockout"]:
             fail(username)
+        captcha_fails[username] +=1
+        if captcha_fails[username] >= config.CAPTCHA_FAIL:
+            captcha_required[username] = True
         log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
                   result="wrong_password", latency_ms=t.ms())
         return jsonify({"ok": False, "error":"wrong password"}), 401
+    captcha_fails[username] = 0
+    #captcha_required[username] = False
     totp_secret = user["totp_secret"]
     if totp_secret:
         log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
@@ -141,6 +181,8 @@ def login():
         success(username)
     log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
               result="login_success", latency_ms=t.ms())
+    captcha_required[username] = False
+    captcha_fails[username] = 0
     return jsonify({"ok": True, "endpoint": "login", "username": username,"need_totp": False}),200
 
 @app.post("/login_totp")
@@ -149,6 +191,15 @@ def login_totp():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     code = str(data.get("code", "")).strip()
+    if config.PROTECTION_FLAGS["captcha"] and captcha_required[username]:
+        token = data.get("token", "")
+        delete_tokens()
+        if not token or token not in captcha_tokens or captcha_tokens[token]["expires"] <= int(time.time()):
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result = "captcha_required", latency_ms=t.ms())
+            return jsonify({"ok": False, "captcha_required": True}), 403
+        captcha_tokens.pop(token, None)
+        captcha_required[username] = False
+        captcha_fails[username] = 0
     if config.PROTECTION_FLAGS["lockout"]:
         if is_locked(username):
             log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
@@ -187,11 +238,15 @@ def login_totp():
             fail(username)
         log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
                   result="wrong_totp", latency_ms=t.ms())
+        captcha_fails[username] += 1
+        if captcha_fails[username] >= config.CAPTCHA_FAIL:
+            captcha_required[username] = True
         return jsonify({"ok": False, "error":"wrong totp code"}), 401
     if config.PROTECTION_FLAGS["lockout"]:
         success(username)
     log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
               result="totp_success", latency_ms=t.ms())
+    captcha_fails[username] = 0
     return jsonify({"ok": True, "endpoint": "login_totp", "username": username}),200
 
 

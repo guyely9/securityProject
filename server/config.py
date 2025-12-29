@@ -16,10 +16,13 @@ LOCKOUT_TRY = 5
 LOCKOUT_TIME = 300
 RATE_HARD_LOCK = True
 ADMIN_KEY = "fffg"
+CAPTCHA_FAIL = 3
+CAPTCHA_TIME= 300
+
 PROTECTION_FLAGS = {
     "pepper": False,
     "totp": False,
-    "rate_limit": True,
+    "rate_limit": False,
     "lockout": False,
-    "captcha": False
+    "captcha": True
 }
