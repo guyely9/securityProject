@@ -1,0 +1,5 @@
+server/attempts.log
+server/users.db
+*.log
+*.db
+__pycache__/

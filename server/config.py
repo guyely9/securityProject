@@ -8,6 +8,21 @@ HASH_MODE = "bcrypt"
 
 BCRYPT_COST = 12
 DB_PATH = os.path.join(os.path.dirname(__file__), "users.db")
-
-ENABLE_PEPPER = False
 PEPPER = 'dacd127151ab278dd0e9d7981c0a474201b400bcb2a156010d004b0190ddb5f3'
+RATE_LIMIT_TRY = 10
+RATE_LIMIT_TIME = 60
+RATE_REFILL = RATE_LIMIT_TRY / RATE_LIMIT_TIME
+LOCKOUT_TRY = 5
+LOCKOUT_TIME = 300
+RATE_HARD_LOCK = True
+ADMIN_KEY = "fffg"
+CAPTCHA_FAIL = 3
+CAPTCHA_TIME= 300
+
+PROTECTION_FLAGS = {
+    "pepper": False,
+    "totp": False,
+    "rate_limit": False,
+    "lockout": False,
+    "captcha": True
+}
