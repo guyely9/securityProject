@@ -1,0 +1,152 @@
+[
+    {
+        "username": "weak_user_0",
+        "password": "123456",
+        "totp_secret": "LEY6BQIEUVCTHU34Z5F7N2NCOZJMUZCF"
+    },
+    {
+        "username": "weak_user_1",
+        "password": "password",
+        "totp_secret": "OEUOCPUZSWURRLP45OU7KIR3BTKKVDRO"
+    },
+    {
+        "username": "weak_user_2",
+        "password": "12345",
+        "totp_secret": "H3YNLYJWP35FY6J4YSNJ6VHITTJKJGYU"
+    },
+    {
+        "username": "weak_user_3",
+        "password": "qwerty",
+        "totp_secret": "LLZ6AIKKVPGNVNYFWZEG4KJLMAWL72M4"
+    },
+    {
+        "username": "weak_user_4",
+        "password": "527740437",
+        "totp_secret": "VTAWPPMURRV4GHVLBRKOEYR77X6BHCR6"
+    },
+    {
+        "username": "weak_user_5",
+        "password": "admin",
+        "totp_secret": "YCBZ3R36GQ57IC57UPVJNS3E35NHF5KO"
+    },
+    {
+        "username": "weak_user_6",
+        "password": "111111",
+        "totp_secret": "7V4WZTPIXQIMVGKP7NVP2ZQWJU7CXIAD"
+    },
+    {
+        "username": "weak_user_7",
+        "password": "123123",
+        "totp_secret": "WV2TU43LIHVG43OMWLQRNMHLB6F5UQRY"
+    },
+    {
+        "username": "weak_user_8",
+        "password": "welcome",
+        "totp_secret": "MZ5UL2QBMKSXV3A5CG4GG5YFMO2HXMNG"
+    },
+    {
+        "username": "weak_user_9",
+        "password": "login123",
+        "totp_secret": "A6OROCAAZXUIP4T5NUBCITZWFGX2DMA2"
+    },
+    {
+        "username": "medium_user_0",
+        "password": "User!0*2025",
+        "totp_secret": "6MM26KYK3TP65MJHSSOOLSA43CRKONA5"
+    },
+    {
+        "username": "medium_user_1",
+        "password": "User!1*2025",
+        "totp_secret": "JHETHGGIQRWWAP3YIISSVLSI3RJM5MQT"
+    },
+    {
+        "username": "medium_user_2",
+        "password": "User!2*2025",
+        "totp_secret": "PF3MWKBUCMULZIMM6E46LD3C6ADMTN6H"
+    },
+    {
+        "username": "medium_user_3",
+        "password": "User!3*2025",
+        "totp_secret": "SEFSIBFE6MA6PPIBD6ONER6A532RWFRH"
+    },
+    {
+        "username": "medium_user_4",
+        "password": "User!4*2025",
+        "totp_secret": "SPPOLP6WG34WO5ZF3TKOGW4QDWDQ42PQ"
+    },
+    {
+        "username": "medium_user_5",
+        "password": "User!5*2025",
+        "totp_secret": "KTDXNFCL57VGY6XWSMPWYG6UNX7XPK3Q"
+    },
+    {
+        "username": "medium_user_6",
+        "password": "User!6*2025",
+        "totp_secret": "DPI4PHMRL26KHLKVR6DAA25IMHDY5QMZ"
+    },
+    {
+        "username": "medium_user_7",
+        "password": "User!7*2025",
+        "totp_secret": "5M5UFEC3SXD5NJVHIVR3N6X6YWORBKOX"
+    },
+    {
+        "username": "medium_user_8",
+        "password": "User!8*2025",
+        "totp_secret": "NA6HUXZCCEZJFVPOMME2GWDLKHKDB26O"
+    },
+    {
+        "username": "medium_user_9",
+        "password": "User!9*2025",
+        "totp_secret": "JE564YNNWQ2JXMDEINWXMUML6ZMJFM5J"
+    },
+    {
+        "username": "strong_user_0",
+        "password": "Strong#P@ssw0rd!0#Secure",
+        "totp_secret": "YT3643QMWNFX63ASUURMY43ORK3Y7D6F"
+    },
+    {
+        "username": "strong_user_1",
+        "password": "Strong#P@ssw0rd!1#Secure",
+        "totp_secret": "JIGEGIS226T7SB5T7NS4QGDAKACOIW4A"
+    },
+    {
+        "username": "strong_user_2",
+        "password": "Strong#P@ssw0rd!2#Secure",
+        "totp_secret": "XPYCCDR5MIM27LKD33NCH4UTOGXMUIMP"
+    },
+    {
+        "username": "strong_user_3",
+        "password": "Strong#P@ssw0rd!3#Secure",
+        "totp_secret": "GS5WOSUGZV2QKQ6P3RZZGXDWSOP6H2XL"
+    },
+    {
+        "username": "strong_user_4",
+        "password": "Strong#P@ssw0rd!4#Secure",
+        "totp_secret": "BJ425WR5VDSPLI5JFJF3WQBCQ766KZSW"
+    },
+    {
+        "username": "strong_user_5",
+        "password": "Strong#P@ssw0rd!5#Secure",
+        "totp_secret": "WSBLDHWVPDJJSVNPUSH7374KJJCHGL5B"
+    },
+    {
+        "username": "strong_user_6",
+        "password": "Strong#P@ssw0rd!6#Secure",
+        "totp_secret": "34NAGNPHZFK3DB7PELZKK3STNFLXSK6G"
+    },
+    {
+        "username": "strong_user_7",
+        "password": "Strong#P@ssw0rd!7#Secure",
+        "totp_secret": "LSV574L7FWB5E24ONFKTAUYUWFKNEPBX"
+    },
+    {
+        "username": "strong_user_8",
+        "password": "Strong#P@ssw0rd!8#Secure",
+        "totp_secret": "Z3PR7UFY6PPDTRV4L7HGP7LBVHIX3W4T"
+    },
+    {
+        "username": "strong_user_9",
+        "password": "Strong#P@ssw0rd!9#Secure",
+        "totp_secret": "W5NW6A5Q2WRP6RVEOM3IHLZ4TYS65JHM"
+    }
+]

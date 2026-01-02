@@ -50,3 +50,17 @@ def users_json():
         conn.execute("""INSERT INTO users (username, hash_mode, password_hash, salt, totp_secret) VALUES (?,?,?,?,?)""", (username, hash_mode, password_hash, salt, totp_secret))
         conn.commit()
         conn.close()
+
+
+def auto_reset_db():
+    db_path = 'users.db'
+    if os.path.exists(db_path):
+        conn = sqlite3.connect(db_path)
+        # בודק מה היה הגיבוב של המשתמש האחרון שנרשם
+        row = conn.execute("SELECT hash_mode FROM users LIMIT 1").fetchone()
+        conn.close()
+
+        # אם הגיבוב ב-DB שונה ממה שמוגדר עכשיו ב-Config - מוחקים הכל
+        if row and row[0] != config.HASH_MODE:
+            print(f"[!] Hash mode changed to {config.HASH_MODE}. Resetting database...")
+            os.remove(db_path)

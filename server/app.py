@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import sqlite3
 import secrets
 import pyotp
-from db import init_db, get_db, users_json
+from db import init_db, users_json, get_db, auto_reset_db
 from passwords import make_password , check_password
 import config
 from logger import log_event, Timer
@@ -251,6 +251,8 @@ def login_totp():
 
 
 if __name__ == "__main__":
+    auto_reset_db()
     init_db()
-    users_json()
-    app.run(debug=True)
+ #   users_json()
+ #   app.run(debug=True)
+app.run(debug=False, threaded=True)

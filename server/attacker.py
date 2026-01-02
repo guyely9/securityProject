@@ -4,27 +4,60 @@ import csv
 import json
 import pyotp
 import os
+import config
 from datetime import datetime
 from config import GROUP_SEED, HASH_MODE
+import sys
+
+# אם קיבלנו שם קובץ מה-orchestrator, נשתמש בו. אם לא, נשתמש בברירת מחדל.
+if len(sys.argv) > 1:
+    LOG_FILE = sys.argv[1]
+else:
+    LOG_FILE = "attack_research_results.csv"
 
 # הגדרות כתובות השרת
 BASE_URL = "http://127.0.0.1:5000"
 LOGIN_URL = f"{BASE_URL}/login"
 TOTP_URL = f"{BASE_URL}/login_totp"
 ADMIN_CAPTCHA_URL = f"{BASE_URL}/admin/get_captcha_token"
-LOG_FILE = "attack_research_results.csv"
 
 
 def log_attempt(username, result, latency, attack_type):
-    """תיעוד הנסיונות לקובץ CSV"""
-    file_exists = os.path.isfile(LOG_FILE)
-    with open(LOG_FILE, 'a', newline='') as f:
-        writer = csv.writer(f)
-        if not file_exists:
-            writer.writerow(["timestamp", "group_seed", "username", "hash_mode", "attack_type", "result", "latency_ms"])
-        writer.writerow([datetime.now().isoformat(), GROUP_SEED, username, HASH_MODE, attack_type,
-                         "success" if result else "failed", round(latency, 2)])
+    """תיעוד הנסיונות לקובץ CSV עם פירוט הגנות אקטיביות"""
 
+    file_exists = os.path.isfile(LOG_FILE)
+
+    # 1. שליפת רשימת ההגנות שמוגדרות כ-True בתוך PROTECTION_FLAGS
+    active_protections = [name for name, status in config.PROTECTION_FLAGS.items() if status]
+
+    # 2. יצירת מחרוזת טקסט למילוי בעמודה (למשל: "captcha, lockout")
+    protections_display = ", ".join(active_protections) if active_protections else "None"
+
+    with open(LOG_FILE, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+
+        # יצירת כותרות אם הקובץ חדש
+        if not file_exists:
+            writer.writerow([
+                "timestamp",
+                "username",
+                "hash_mode",
+                "active_protections",  # העמודה החדשה שביקשת
+                "attack_type",
+                "result",
+                "latency_ms"
+            ])
+
+        # כתיבת שורת הנתונים
+        writer.writerow([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            username,
+            config.HASH_MODE,
+            protections_display,
+            attack_type,
+            "success" if result else "failed",
+            round(latency, 2)
+        ])
 
 def get_captcha_token():
     """משיכת token חדש מהשרת בכל פעם שנחסמים"""
@@ -70,6 +103,7 @@ def run_password_spraying():
     for pwd in common_pwds:
         for user in users:
             perform_single_login(user['username'], pwd, user['totp_secret'], "password_spraying")
+            time.sleep(0.1)
 
 
 def run_brute_force_from_file(target_username, filename="wordlist.txt"):

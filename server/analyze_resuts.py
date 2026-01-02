@@ -1,61 +1,61 @@
 import csv
 import statistics
 import matplotlib.pyplot as plt
+import os
 
-LOG_FILE = "attack_research_results.csv"
 
-
-# הפוקנציה שמפיקה את הסיכום הסטטיסטי
 def generate_research_summary():
     print("\n" + "=" * 40)
     print("--- GLOBAL RESEARCH ANALYSIS ---")
     print("=" * 40)
 
+    results_folder = "results"
     data_by_mode = {}
 
-    try:
-        with open(LOG_FILE, 'r') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                mode = row['hash_mode']
-                if mode not in data_by_mode:
-                    data_by_mode[mode] = []
-                data_by_mode[mode].append(float(row['latency_ms']))
+    # סריקת כל קבצי ה-CSV בתיקיית התוצאות
+    for filename in os.listdir(results_folder):
+        if filename.endswith(".csv"):
+            path = os.path.join(results_folder, filename)
+            with open(path, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    # שימי לב: השתמשי בשמות העמודות המדויקים שיש ב-CSV שלך
+                    # אם ב-CSV העמודה נקראת 'response_time', שנו את 'latency_ms' ל-'response_time'
+                    mode = row.get('hash_mode', filename.replace('res_', '').replace('.csv', ''))
+                    latency = float(row.get('latency_ms') or row.get('response_time', 0))
 
-        if not data_by_mode:
-            print("No data found in CSV.")
-            return
+                    if mode not in data_by_mode:
+                        data_by_mode[mode] = []
+                    data_by_mode[mode].append(latency)
 
-        modes = []
-        avg_latencies = []
+    if not data_by_mode:
+        print("No data found in results folder.")
+        return
 
-        for mode, latencies in data_by_mode.items():
-            avg = statistics.mean(latencies)
-            modes.append(mode)
-            avg_latencies.append(avg)
+    modes, avg_latencies = [], []
 
-            print(f"\nAnalysis for Mode: {mode}")
-            print(f"Total Attempts Recorded: {len(latencies)}")
-            print(f"Average Latency: {avg:.2f} ms")
-            print(f"Median Latency: {statistics.median(latencies):.2f} ms")
-            print(f"Approx. Attempts per Second: {1000 / avg:.2f}")
+    for mode, latencies in data_by_mode.items():
+        avg = statistics.mean(latencies)
+        modes.append(mode)
+        avg_latencies.append(avg)
 
-        # יצירת גרף השוואתי אוטומטי לדוח
-        create_comparison_graph(modes, avg_latencies)
-        print("\n" + "=" * 40)
+        print(f"\nAnalysis for Mode: {mode}")
+        print(f"Average Latency: {avg:.4f} s")
+        # חישוב כמה ניסיונות תקיפה אפשר להריץ בשנייה
+        print(f"Approx. Attempts per Second: {1 / avg if avg > 0 else 'Inf':.2f}")
 
-    except FileNotFoundError:
-        print("Log file not found. Run attacker.py first.")
+    create_comparison_graph(modes, avg_latencies)
 
 
 def create_comparison_graph(modes, latencies):
     plt.figure(figsize=(10, 6))
-    plt.bar(modes, latencies, color=['blue', 'green', 'red', 'orange'])
-    plt.xlabel('Hashing Mode')
-    plt.ylabel('Average Latency (ms)')
-    plt.title('Security impact: Latency per Hashing Algorithm')
-    plt.savefig('latency_comparison.png')  # שומר את הגרף כתמונה
-    print("\n[V] Success: Comparison graph saved as 'latency_comparison.png'")
+    plt.bar(modes, latencies, color=['skyblue', 'salmon', 'lightgreen'])
+    plt.xlabel('Algorithm')
+    plt.ylabel('Average Time (seconds)')
+    plt.title('Security impact: Time Cost per Password Guess')
+    plt.savefig('results/latency_comparison.png')
+    print("\n[V] Success: Comparison graph saved in 'results/latency_comparison.png'")
+    plt.show()
 
 
 if __name__ == "__main__":
