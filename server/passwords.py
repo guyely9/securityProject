@@ -7,7 +7,7 @@ from argon2.low_level import Type
 
 from config import HASH_MODE, PROTECTION_FLAGS, PEPPER, BCRYPT_COST
 
-_argon2 = PasswordHasher(type=Type.ID)
+_argon2 = PasswordHasher(time_cost=1, memory_cost= 65536, parallelism= 1,type=Type.ID)
 
 def add_pepper(password):
     if PROTECTION_FLAGS["pepper"]:
