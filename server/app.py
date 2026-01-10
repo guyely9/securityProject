@@ -8,7 +8,11 @@ import config
 from logger import log_event, Timer
 import time
 from collections import  defaultdict, deque
+import logging
 
+"""# משתיק את ההדפסות האוטומטיות של השרת לטרמינל
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)"""
 
 app = Flask(__name__)
 rate_buckets = {}
@@ -68,30 +72,31 @@ def register():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     password = data.get("password", "")
+    attack_type = data.get("attack_type", "unknown")
     if not username or not password:
         log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="missing_something", latency_ms=t.ms())
+                  result="missing_something", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error":"username or password are missing"}), 400
     conn = get_db()
     exists = conn.execute("SELECT username FROM users WHERE username = ?", (username,)).fetchone()
     if exists is not None:
         conn.close()
         log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="username_exists", latency_ms=t.ms())
+                  result="username_exists", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error":"username already exists"}), 409
     try:
         pw_hash, salt, mode = make_password(password)
     except Exception as e:
         conn.close()
         log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="failed_in_hashing", latency_ms=t.ms())
+                  result="failed_in_hashing", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error": "hashing failed"}), 500
 
     conn.execute("INSERT INTO users (username, hash_mode, password_hash, salt, totp_secret) VALUES (?,?,?,?,?)", (username, mode, pw_hash, salt, None))
     conn.commit()
     conn.close()
     log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-              result="register_success", latency_ms=t.ms())
+              result="register_success", latency_ms=t.ms(), attack_type=attack_type)
     return jsonify({"ok": True, "endpoint": "register", "username": username}),201
 
 @app.post("/admin/unlock")
@@ -123,32 +128,33 @@ def login():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     password = data.get("password", "")
+    attack_type = data.get("attack_type", "manual_login")
     if config.PROTECTION_FLAGS["captcha"] and captcha_required[username]:
         token = data.get("token", "")
         delete_tokens()
         if not token or token not in captcha_tokens or captcha_tokens[token]["expires"] <= int(time.time()):
-            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result = "captcha_required", latency_ms=t.ms())
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result = "captcha_required", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "captcha_required": True}), 403
         captcha_tokens.pop(token, None)
         #captcha_required[username] = False
         #captcha_fails[username] = 0
-        log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result= "captcha_token_used", latency_ms=t.ms())
+        log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result= "captcha_token_used", latency_ms=t.ms(), attack_type=attack_type)
     if config.PROTECTION_FLAGS["lockout"]:
         if is_locked(username):
-            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "error":"account is locked now"}), 423
     if config.PROTECTION_FLAGS["rate_limit"]:
         if username in rate_locked:
-            log_event(username=username,hash_mode = None, protection_flags= config.PROTECTION_FLAGS ,result="rate_limiting", latency_ms=t.ms())
+            log_event(username=username,hash_mode = None, protection_flags= config.PROTECTION_FLAGS ,result="rate_limiting", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "error": "too many attempts"}), 423
         if not check_rate(username):
             if config.RATE_HARD_LOCK:
                 rate_locked.add(username)
-            log_event(username= username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result= "rate_limiting", latency_ms=t.ms())
+            log_event(username= username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result= "rate_limiting", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "error": "too many attempts"}), 429
     if not username or not password:
         log_event(username = username or "", hash_mode=None,protection_flags= config.PROTECTION_FLAGS,
-                  result= "missing_something", latency_ms=t.ms())
+                  result= "missing_something", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error":"username or password are missing"}), 400
     conn = get_db()
     user = conn.execute("SELECT password_hash, salt, hash_mode, totp_secret FROM users WHERE username = ?", (username,)).fetchone()
@@ -156,7 +162,7 @@ def login():
 
     if user is None:
         log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="user_not_found", latency_ms=t.ms())
+                  result="user_not_found", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error":"username does not exist"}), 404
     hash = user["password_hash"]
     salt = user["salt"]
@@ -168,19 +174,19 @@ def login():
         if captcha_fails[username] >= config.CAPTCHA_FAIL:
             captcha_required[username] = True
         log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
-                  result="wrong_password", latency_ms=t.ms())
+                  result="wrong_password", latency_ms=t.ms(),  attack_type = attack_type)
         return jsonify({"ok": False, "error":"wrong password"}), 401
     captcha_fails[username] = 0
     #captcha_required[username] = False
     totp_secret = user["totp_secret"]
     if totp_secret:
         log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
-                  result="need_totp", latency_ms=t.ms())
+                  result="need_totp", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": True, "endpoint": "login", "username": username,"need_totp" : True}),200
     if config.PROTECTION_FLAGS["lockout"]:
         success(username)
     log_event(username=username, hash_mode=hash_mode, protection_flags=config.PROTECTION_FLAGS,
-              result="login_success", latency_ms=t.ms())
+              result="login_success", latency_ms=t.ms(), attack_type=attack_type)
     captcha_required[username] = False
     captcha_fails[username] = 0
     return jsonify({"ok": True, "endpoint": "login", "username": username,"need_totp": False}),200
@@ -191,33 +197,34 @@ def login_totp():
     data = request.get_json(silent=True) or {}
     username = data.get("username", "")
     code = str(data.get("code", "")).strip()
+    attack_type = data.get("attack_type", "manual_totp")
     if config.PROTECTION_FLAGS["captcha"] and captcha_required[username]:
         token = data.get("token", "")
         delete_tokens()
         if not token or token not in captcha_tokens or captcha_tokens[token]["expires"] <= int(time.time()):
-            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result = "captcha_required", latency_ms=t.ms())
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS, result = "captcha_required", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "captcha_required": True}), 403
         captcha_tokens.pop(token, None)
         captcha_required[username] = False
         captcha_fails[username] = 0
     if config.PROTECTION_FLAGS["lockout"]:
         if is_locked(username):
-            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms())
+            log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,result = "lockout is on", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "error":"account is locking now"}), 423
     if config.PROTECTION_FLAGS["rate_limit"]:
         if username in rate_locked:
             log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                      result="rate_limiting", latency_ms=t.ms())
+                      result="rate_limiting", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "error": "locked"}), 423
         if not check_rate(username):
             if config.RATE_HARD_LOCK:
                 rate_locked.add(username)
             log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                      result="rate_limiting", latency_ms=t.ms())
+                      result="rate_limiting", latency_ms=t.ms(), attack_type=attack_type)
             return jsonify({"ok": False, "error": "too many attempts"}), 429
     if not username or not code:
         log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="missing_something", latency_ms=t.ms())
+                  result="missing_something", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error":"username or code are missing"}), 400
     conn = get_db()
     row = conn.execute("SELECT totp_secret FROM users WHERE username = ?", (username,)).fetchone()
@@ -225,19 +232,19 @@ def login_totp():
 
     if row is None:
         log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="user_not_found", latency_ms=t.ms())
+                  result="user_not_found", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error":"username does not exist"}), 404
     totp_secret = row["totp_secret"]
     if not totp_secret:
         log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="totp_not_needed", latency_ms=t.ms())
+                  result="totp_not_needed", latency_ms=t.ms(), attack_type=attack_type)
         return jsonify({"ok": False, "error":"totp_secret does not needed"}), 400
     totp = pyotp.TOTP(totp_secret)
     if not totp.verify(code,valid_window=1):
         if config.PROTECTION_FLAGS["lockout"]:
             fail(username)
         log_event(username=username, hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-                  result="wrong_totp", latency_ms=t.ms())
+                  result="wrong_totp", latency_ms=t.ms(), attack_type=attack_type)
         captcha_fails[username] += 1
         if captcha_fails[username] >= config.CAPTCHA_FAIL:
             captcha_required[username] = True
@@ -245,7 +252,7 @@ def login_totp():
     if config.PROTECTION_FLAGS["lockout"]:
         success(username)
     log_event(username=username or "", hash_mode=None, protection_flags=config.PROTECTION_FLAGS,
-              result="totp_success", latency_ms=t.ms())
+              result="totp_success", latency_ms=t.ms(), attack_type=attack_type)
     captcha_fails[username] = 0
     return jsonify({"ok": True, "endpoint": "login_totp", "username": username}),200
 
@@ -255,4 +262,4 @@ if __name__ == "__main__":
     init_db()
  #   users_json()
  #   app.run(debug=True)
-app.run(debug=False, threaded=True)
+app.run(debug=True, threaded=True)

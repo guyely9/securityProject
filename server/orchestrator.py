@@ -15,21 +15,21 @@ scenarios = [
 
     # שלב 2: הוספת כל הגנה בנפרד
     # נשתמש ב-Bcrypt כבסיס להשוואה מכאן והלאה
-    {"name": "04_protect_pepper_only", "hash": "bcrypt", "pep": True, "totp": False, "rate": False, "lock": False,
+    {"name": "04_protect_pepper_only", "hash": "sha256_salt", "pep": True, "totp": False, "rate": False, "lock": False,
      "caps": False},
-    {"name": "05_protect_totp_only", "hash": "bcrypt", "pep": False, "totp": True, "rate": False, "lock": False,
+    {"name": "05_protect_totp_only", "hash": "sha256_salt", "pep": False, "totp": True, "rate": False, "lock": False,
      "caps": False},
-    {"name": "06_protect_rate_only", "hash": "bcrypt", "pep": False, "totp": False, "rate": True, "lock": False,
+    {"name": "06_protect_rate_only", "hash": "sha256_salt", "pep": False, "totp": False, "rate": True, "lock": False,
      "caps": False},
-    {"name": "07_protect_lockout_only", "hash": "bcrypt", "pep": False, "totp": False, "rate": False, "lock": True,
+    {"name": "07_protect_lockout_only", "hash": "sha256_salt", "pep": False, "totp": False, "rate": False, "lock": True,
      "caps": False},
-    {"name": "08_protect_captcha_only", "hash": "bcrypt", "pep": False, "totp": False, "rate": False, "lock": False,
+    {"name": "08_protect_captcha_only", "hash": "sha256_salt", "pep": False, "totp": False, "rate": False, "lock": False,
      "caps": True},
 
     # שלב 3: שילובים (וריאציות)
-    {"name": "09_var_hashing_plus_active", "hash": "bcrypt", "pep": True, "totp": False, "rate": True, "lock": True,
+    {"name": "09_var_hashing_plus_active", "hash": "ha256_salt", "pep": True, "totp": False, "rate": True, "lock": True,
      "caps": False},
-    {"name": "10_full_defense_all_on", "hash": "bcrypt", "pep": True, "totp": True, "rate": True, "lock": True,
+    {"name": "10_full_defense_all_on", "hash": "ha256_salt", "pep": True, "totp": True, "rate": True, "lock": True,
      "caps": True},
 ]
 

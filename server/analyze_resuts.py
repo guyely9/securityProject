@@ -3,96 +3,100 @@ import matplotlib.pyplot as plt
 import os
 import numpy as np
 
-# הגדרות נתיבים וקבצים
-RESULTS_DIR = 'results'
-FILE_ORDER = [
-    'res_01_pure_sha256.csv', 'res_02_pure_argon2.csv', 'res_03_pure_bcrypt.csv',
-    'res_04_protect_pepper_only.csv', 'res_05_protect_totp_only.csv',
-    'res_06_protect_rate_only.csv', 'res_07_protect_lockout_only.csv',
-    'res_08_protect_captcha_only.csv', 'res_09_var_hashing_plus_active.csv',
-    'res_10_full_defense_all_on.csv'
-]
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RESULTS_DIR = os.path.join(BASE_DIR, "results")
 
 
-def run_full_analysis():
-    data_list = []
+def analyze_research_data():
+    summary_data = []
 
-    # הדפסת כותרת לניתוח הסטטיסטי בטרמינל
-    print("\n" + "=" * 85)
-    print(f"{'Scenario Name':<35} | {'Mean':<7} | {'Median':<7} | {'P90':<7} | {'Success%'}")
-    print("-" * 85)
+    if not os.path.exists(RESULTS_DIR):
+        print("Error: Results directory not found!")
+        return
 
-    for filename in FILE_ORDER:
+    all_files = [f for f in os.listdir(RESULTS_DIR) if f.startswith('res_') and f.endswith('.csv')]
+
+    for filename in all_files:
         path = os.path.join(RESULTS_DIR, filename)
-        if not os.path.exists(path):
-            continue
+        try:
+            df = pd.read_csv(path)
+            # ניקוי שם הקובץ לתצוגה בגרף
+            name = filename.replace('res_', '').replace('logs_', '').replace('.csv', '').replace('_', ' ')
 
-        df = pd.read_csv(path)
+            for attack in ['password_spraying', 'brute_force']:
+                sub_df = df[df['Attack Type'] == attack]
+                if sub_df.empty: continue
 
-        # עיבוד שם התרחיש
-        display_name = filename.replace('res_', '').replace('.csv', '').replace('_', ' ')
+                avg_time = sub_df['Total Execution Time (ms)'].mean()
+                success_count = (sub_df['Full Breach Success'] == 'Yes').sum()
+                success_rate = (success_count / len(sub_df)) * 100
 
-        # חישוב מדדי זמן (Latency)
-        latencies = df['latency_ms']
-        avg = latencies.mean()
-        med = latencies.median()
-        p90 = np.percentile(latencies, 90)
+                summary_data.append({
+                    'Scenario': name,
+                    'Attack': attack,
+                    'AvgTime': avg_time,
+                    'SuccessCount': success_count,
+                    'SuccessRate': success_rate,
+                    'IsDefense': any(d in name.lower() for d in ['lockout', 'captcha', 'rate', 'totp', 'pepper'])
+                })
+        except Exception as e:
+            print(f"Error processing {filename}: {e}")
 
-        # חישוב אחוזי הצלחה
-        success_rate = (len(df[df['result'] == 'success']) / len(df)) * 100
-
-        # שמירה לרשימה עבור הגרפים
-        data_list.append({
-            'name': display_name,
-            'mean': avg,
-            'median': med,
-            'p90': p90,
-            'success': success_rate,
-            'is_pure': 'pure' in filename
-        })
-
-        # הדפסת שורה לטבלה בטרמינל
-        print(f"{display_name:<35} | {avg:7.1f} | {med:7.1f} | {p90:7.1f} | {success_rate:6.1f}%")
-
-    print("=" * 85)
-
-    # יצירת הגרפים
-    generate_plots(pd.DataFrame(data_list))
+    df_final = pd.DataFrame(summary_data)
+    if df_final.empty: return
+    create_plots(df_final)
 
 
-def generate_plots(df):
+def create_plots(df):
     plt.style.use('ggplot')
+    hashes = df[df['IsDefense'] == False]
+    defenses = df[df['IsDefense'] == True]
 
-    # --- גרף 1: מהירות האלגוריתמים ללא הגנה (Baseline) ---
-    plt.figure(figsize=(10, 6))
-    pure_df = df[df['is_pure']]
-    plt.bar(pure_df['name'], pure_df['mean'], color=['#3498db', '#e74c3c', '#2ecc71'])
-    plt.title('Graph 1: Average Latency - Pure Hashing Algorithms')
-    plt.ylabel('Latency (ms)')
-    plt.xticks(rotation=15)
-    plt.savefig(os.path.join(RESULTS_DIR, '01_pure_latency.png'))
+    # גרף 1: זמן ממוצע - האשים (לכל התקיפות)
+    plot_bar(hashes, 'AvgTime', 'Avg Total Execution Time (ms) - Pure Hashes', 'time_pure.png')
 
-    # --- גרף 2: מהירות כל ההרצות (כולל הגנות) ---
-    plt.figure(figsize=(12, 8))
-    plt.barh(df['name'], df['mean'], color='teal')
-    plt.title('Graph 2: Comparison of Latency Across All Scenarios')
-    plt.xlabel('Average Latency (ms)')
-    plt.tight_layout()
-    plt.savefig(os.path.join(RESULTS_DIR, '02_all_scenarios_latency.png'))
+    # גרף 2: זמן ממוצע - הגנות (לכל התקיפות)
+    plot_bar(defenses, 'AvgTime', 'Avg Total Execution Time (ms) - Defenses', 'time_defenses.png')
 
-    # --- גרף 3: אחוזי הצלחה ללא הגנות ---
-    plt.figure(figsize=(10, 6))
-    plt.bar(pure_df['name'], pure_df['success'], color='#f39c12')
-    plt.title('Graph 3: Attacker Success Rate (Pure Hashing Only)')
-    plt.ylabel('Success Rate (%)')
-    plt.ylim(0, 110)
-    for i, val in enumerate(pure_df['success']):
-        plt.text(i, val + 2, f"{val:.1f}%", ha='center', fontweight='bold')
-    plt.savefig(os.path.join(RESULTS_DIR, '03_pure_success_rate.png'))
+    # גרף 3: מספר פריצות מוצלח (מספרים אבסולוטיים)
+    plot_bar(df, 'SuccessCount', 'Number of Successful Breaches (Absolute)', 'success_count_abs.png')
 
-    print("\n[V] שלושת הגרפים נשמרו בתיקיית results.")
+    # גרף 4: אחוז פריצות מוצלח
+    plot_bar(df, 'SuccessRate', 'Breach Success Rate (%)', 'success_rate_percent.png')
+
+    print(f"\n[V] Success! All 4 graphs saved in {RESULTS_DIR}")
     plt.show()
 
 
+def plot_bar(data, y_field, title, filename):
+    if data.empty: return
+    scenarios = data['Scenario'].unique()
+    x = np.arange(len(scenarios))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(12, 7))
+
+    # שליפת נתונים לפי סוג התקפה
+    spray = [data[(data['Scenario'] == s) & (data['Attack'] == 'password_spraying')][y_field].sum() for s in scenarios]
+    brute = [data[(data['Scenario'] == s) & (data['Attack'] == 'brute_force')][y_field].sum() for s in scenarios]
+
+    ax.bar(x - width / 2, spray, width, label='Password Spraying', color='#3498db')
+    ax.bar(x + width / 2, brute, width, label='Brute Force', color='#e74c3c')
+
+    ax.set_ylabel(y_field)
+    ax.set_title(title)
+    ax.set_xticks(x)
+    ax.set_xticklabels(scenarios, rotation=30, ha='right')
+    ax.legend()
+
+    # הוספת טקסט מעל העמודות
+    for i in range(len(x)):
+        ax.text(x[i] - width / 2, spray[i], f'{spray[i]:.1f}', ha='center', va='bottom', fontsize=8)
+        ax.text(x[i] + width / 2, brute[i], f'{brute[i]:.1f}', ha='center', va='bottom', fontsize=8)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(RESULTS_DIR, filename))
+
+
 if __name__ == "__main__":
-    run_full_analysis()
+    analyze_research_data()

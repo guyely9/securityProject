@@ -2,151 +2,181 @@
     {
         "username": "weak_user_0",
         "password": "123456",
-        "totp_secret": "LEY6BQIEUVCTHU34Z5F7N2NCOZJMUZCF"
+        "category": "Weak",
+        "totp_secret": "HVMVBVQN6URL6Z7DOX3DM4IT3N3QITQS"
     },
     {
         "username": "weak_user_1",
         "password": "password",
-        "totp_secret": "OEUOCPUZSWURRLP45OU7KIR3BTKKVDRO"
+        "category": "Weak",
+        "totp_secret": "IJFDK5AHFXYEHFA5XOWINFC2H4BYLFYO"
     },
     {
         "username": "weak_user_2",
-        "password": "12345",
-        "totp_secret": "H3YNLYJWP35FY6J4YSNJ6VHITTJKJGYU"
+        "password": "12345678",
+        "category": "Weak",
+        "totp_secret": "DUAIP3AK4LWPD3KMIU3U3EPIYJFBVFRV"
     },
     {
         "username": "weak_user_3",
         "password": "qwerty",
-        "totp_secret": "LLZ6AIKKVPGNVNYFWZEG4KJLMAWL72M4"
+        "category": "Weak",
+        "totp_secret": "CQJDOXX5ENSBVVEPI2XTBAE2QQXICGRN"
     },
     {
         "username": "weak_user_4",
-        "password": "527740437",
-        "totp_secret": "VTAWPPMURRV4GHVLBRKOEYR77X6BHCR6"
+        "password": "12345",
+        "category": "Weak",
+        "totp_secret": "DG4BFDU6ZKEBZQWF7EZRBG42THVO4HJY"
     },
     {
         "username": "weak_user_5",
-        "password": "admin",
-        "totp_secret": "YCBZ3R36GQ57IC57UPVJNS3E35NHF5KO"
+        "password": "111111",
+        "category": "Weak",
+        "totp_secret": "EMZYJBY4JBSD2GQCQL7JDN2PIIG34YNB"
     },
     {
         "username": "weak_user_6",
-        "password": "111111",
-        "totp_secret": "7V4WZTPIXQIMVGKP7NVP2ZQWJU7CXIAD"
+        "password": "123123",
+        "category": "Weak",
+        "totp_secret": "2CDTX7FARGFVXRKWWFJKGZVAUMT7FEFO"
     },
     {
         "username": "weak_user_7",
-        "password": "123123",
-        "totp_secret": "WV2TU43LIHVG43OMWLQRNMHLB6F5UQRY"
+        "password": "sunshine",
+        "category": "Weak",
+        "totp_secret": "VRNMTAK3O4WI55KUAJIBGLD7OECD5QM6"
     },
     {
         "username": "weak_user_8",
-        "password": "welcome",
-        "totp_secret": "MZ5UL2QBMKSXV3A5CG4GG5YFMO2HXMNG"
+        "password": "iloveyou",
+        "category": "Weak",
+        "totp_secret": "LFL5B3E7BMUE7QTGE2BA36RPAYZQMSUN"
     },
     {
         "username": "weak_user_9",
-        "password": "login123",
-        "totp_secret": "A6OROCAAZXUIP4T5NUBCITZWFGX2DMA2"
+        "password": "admin",
+        "category": "Weak",
+        "totp_secret": "SN6VKTQGKN7O6QP2FNQXTHSFBQ6KQK3A"
     },
     {
         "username": "medium_user_0",
-        "password": "User!0*2025",
-        "totp_secret": "6MM26KYK3TP65MJHSSOOLSA43CRKONA5"
+        "password": "Jonathan2020",
+        "category": "Medium",
+        "totp_secret": "5NABZAYU3GI6SP3HB2BHSUTBQIJDKMI6"
     },
     {
         "username": "medium_user_1",
-        "password": "User!1*2025",
-        "totp_secret": "JHETHGGIQRWWAP3YIISSVLSI3RJM5MQT"
+        "password": "MyDogRex!",
+        "category": "Medium",
+        "totp_secret": "NMS6QBABJC2KKY64NRQP2RHPUOUTGRKM"
     },
     {
         "username": "medium_user_2",
-        "password": "User!2*2025",
-        "totp_secret": "PF3MWKBUCMULZIMM6E46LD3C6ADMTN6H"
+        "password": "Israel2026",
+        "category": "Medium",
+        "totp_secret": "GOZ3FK6OM4N6R6F7S2LLK7GAID55SVSV"
     },
     {
         "username": "medium_user_3",
-        "password": "User!3*2025",
-        "totp_secret": "SEFSIBFE6MA6PPIBD6ONER6A532RWFRH"
+        "password": "Pizza123!",
+        "category": "Medium",
+        "totp_secret": "KFBTWHT2IXADAJRAVNVXZV65HVWCE3EV"
     },
     {
         "username": "medium_user_4",
-        "password": "User!4*2025",
-        "totp_secret": "SPPOLP6WG34WO5ZF3TKOGW4QDWDQ42PQ"
+        "password": "Summer2025",
+        "category": "Medium",
+        "totp_secret": "U4BBNRF6OOFJODSERGHAYDR3CJ43GIBP"
     },
     {
         "username": "medium_user_5",
-        "password": "User!5*2025",
-        "totp_secret": "KTDXNFCL57VGY6XWSMPWYG6UNX7XPK3Q"
+        "password": "CoffeeTime",
+        "category": "Medium",
+        "totp_secret": "ZIDZMGZRO7IEAL2DX24PDEV533PNNTHK"
     },
     {
         "username": "medium_user_6",
-        "password": "User!6*2025",
-        "totp_secret": "DPI4PHMRL26KHLKVR6DAA25IMHDY5QMZ"
+        "password": "Liverpool#1",
+        "category": "Medium",
+        "totp_secret": "3ISTUDJMH3D3P34RBZDARIO5PMHRFTVB"
     },
     {
         "username": "medium_user_7",
-        "password": "User!7*2025",
-        "totp_secret": "5M5UFEC3SXD5NJVHIVR3N6X6YWORBKOX"
+        "password": "FamilyFirst",
+        "category": "Medium",
+        "totp_secret": "2ROTUU5DRLEYJFXSUN2KDTTVY6WF3CQV"
     },
     {
         "username": "medium_user_8",
-        "password": "User!8*2025",
-        "totp_secret": "NA6HUXZCCEZJFVPOMME2GWDLKHKDB26O"
+        "password": "BlueSky2024",
+        "category": "Medium",
+        "totp_secret": "4RDZ7JERNUO5IAI7KMZT6J4BPESCOD6H"
     },
     {
         "username": "medium_user_9",
-        "password": "User!9*2025",
-        "totp_secret": "JE564YNNWQ2JXMDEINWXMUML6ZMJFM5J"
+        "password": "User-527740437",
+        "category": "Medium",
+        "totp_secret": "G64AVKS3GEVHUQYNHXRQW4YQNGNUIZUE"
     },
     {
         "username": "strong_user_0",
-        "password": "Strong#P@ssw0rd!0#Secure",
-        "totp_secret": "YT3643QMWNFX63ASUURMY43ORK3Y7D6F"
+        "password": "Str0ngP@ss1!",
+        "category": "Strong",
+        "totp_secret": "M4SZCTSDRUOCI4UDIAMX4A4UKWMJPDHJ"
     },
     {
         "username": "strong_user_1",
-        "password": "Strong#P@ssw0rd!1#Secure",
-        "totp_secret": "JIGEGIS226T7SB5T7NS4QGDAKACOIW4A"
+        "password": "V3ryS3cur3#",
+        "category": "Strong",
+        "totp_secret": "VRQTWMCFDQKQEGJAWBJE5VGVK7PFUGWS"
     },
     {
         "username": "strong_user_2",
-        "password": "Strong#P@ssw0rd!2#Secure",
-        "totp_secret": "XPYCCDR5MIM27LKD33NCH4UTOGXMUIMP"
+        "password": "Admin$$2026",
+        "category": "Strong",
+        "totp_secret": "UVPFANTDKAFHMZ5TJPSMRWOUXXOGSBLG"
     },
     {
         "username": "strong_user_3",
-        "password": "Strong#P@ssw0rd!3#Secure",
-        "totp_secret": "GS5WOSUGZV2QKQ6P3RZZGXDWSOP6H2XL"
+        "password": "Complex!2026",
+        "category": "Strong",
+        "totp_secret": "QONO5VHTN3RVX2O6AUCMODR7AS5S5QJ2"
     },
     {
         "username": "strong_user_4",
-        "password": "Strong#P@ssw0rd!4#Secure",
-        "totp_secret": "BJ425WR5VDSPLI5JFJF3WQBCQ766KZSW"
+        "password": "SafetyFirst!",
+        "category": "Strong",
+        "totp_secret": "A4MPVEDIFSGJY4E3O66ONNECTRCFLMHZ"
     },
     {
         "username": "strong_user_5",
-        "password": "Strong#P@ssw0rd!5#Secure",
-        "totp_secret": "WSBLDHWVPDJJSVNPUSH7374KJJCHGL5B"
+        "password": "Secure#123",
+        "category": "Strong",
+        "totp_secret": "LUOMCBQQEHVWVSP2HX23GP722I3QCNH3"
     },
     {
         "username": "strong_user_6",
-        "password": "Strong#P@ssw0rd!6#Secure",
-        "totp_secret": "34NAGNPHZFK3DB7PELZKK3STNFLXSK6G"
+        "password": "P@ssw0rd99",
+        "category": "Strong",
+        "totp_secret": "4G7KLER6TIAAXEDCOREEYRRJPFU3KC5A"
     },
     {
         "username": "strong_user_7",
-        "password": "Strong#P@ssw0rd!7#Secure",
-        "totp_secret": "LSV574L7FWB5E24ONFKTAUYUWFKNEPBX"
+        "password": "Login2026!",
+        "category": "Strong",
+        "totp_secret": "PWBEDW57DRMGMFCWQ3EKCOCNQUIZO4SB"
     },
     {
         "username": "strong_user_8",
-        "password": "Strong#P@ssw0rd!8#Secure",
-        "totp_secret": "Z3PR7UFY6PPDTRV4L7HGP7LBVHIX3W4T"
+        "password": "ProtectMe!",
+        "category": "Strong",
+        "totp_secret": "LDE24MDHDAE75JTYOL3SXBEB3LWHSDUG"
     },
     {
         "username": "strong_user_9",
-        "password": "Strong#P@ssw0rd!9#Secure",
-        "totp_secret": "W5NW6A5Q2WRP6RVEOM3IHLZ4TYS65JHM"
+        "password": "FinalTest#1",
+        "category": "Strong",
+        "totp_secret": "VF76XOWKP3VIZNCVBVA6BLKHOVVHIWQZ"
     }
 ]
