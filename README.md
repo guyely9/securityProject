@@ -25,7 +25,7 @@ group_seed = 527740437
 
 1.2 יש להתקין את הפסריות הנדרשות באמצעות הפקודה:
 
-```pip install bcrypt argon2-cffi pyotp pillo```python
+```pip install bcrypt argon2-cffi pyotp pillo```
 
 1.3 הפרוייקט מתבסס על קובץ rockyou.txt המכיל סיסמאות נפוצות.
 ניתן להוריד את קובץ הסיסמאות בקישור: 
@@ -39,19 +39,19 @@ group_seed = 527740437
 3. הרצת השרת:
 השרת מדמה את מערכת האימות עם ההגנות השונות. לכל הרצה יש להשתמש בקובץ ה-entry point:
 
-```python app.py```python
+```python app.py```
 
 4. יצירת בסיס הנתונים, המשתמשים וקובץ הסיסמאות לתוקף
 הקובץ  setup_experiment.py אחראי על יצירת המשאבים לתקיפה ולהגנה
 הריצו בטרמינל:
 
-```python setup_experiment.py```python
+```python setup_experiment.py```
 
 5. הרצת המתקפות
 המתקפות מבוצעות באופן אוטמוטי על ידי השרת כחלק מתהליך ניסוי בעזרת brute force ו passwords sprayin.
 הריצו את הקובץ attacker:
 
-```python attacker.py```python
+```python attacker.py```
  
 *אם תרצו לתקוף רק בעזרת brute force או רק passwords spaying, ניתן להפוך את השורה בmain שקוראת לסוג התקיפה שאינכם מעוניינים בה להערה. 
 
@@ -60,13 +60,13 @@ group_seed = 527740437
 שם הקובץ נקבע לפי שיטת הגיבוב וההגנות הפועלות בו. 
 כדי להפוך את הלוגים לטבלה מסודרת וקריאה יותר, הריצו את הקובץ logs_to_csv:
 
-```python logs_to_csv.py```python
+```python logs_to_csv.py```
 
 הקובץ ייפתח תקייה חדשה (אלא אם כן כבר קיימת) בשם results, שם יווצר קובץ csv הרצוי. 
 
 אם תרצו להשוות בין הניסויים באופן ויזואלי, מהיר וממצת. הריצו את הקובץ analyze_results:
 
-```python analyze_results.py```python
+```python analyze_results.py```
 
 קובץ זה יכין 4 גרפים וישמור אותם בתיקייה results.
 
