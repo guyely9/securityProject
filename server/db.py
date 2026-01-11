@@ -5,12 +5,13 @@ import os
 
 from passwords import make_password
 
-
+#return the connection to the SQlite
 def get_db():
     conn = sqlite3.connect(config.DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
+#this function create the users table for users that want to regist by the system
 def init_db():
     conn = get_db()
     conn.execute("""
@@ -26,6 +27,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+#this function take the users from "users.json" ' make them hashing and insert into the table of users (DB)
 def users_json():
     json_path = os.path.join(os.path.dirname(__file__), "users.json")
     if not os.path.exists(json_path):
@@ -51,7 +53,7 @@ def users_json():
         conn.commit()
         conn.close()
 
-
+#this function reset the database if the hash config has changed
 def auto_reset_db():
     db_path = 'users.db'
     if os.path.exists(db_path):

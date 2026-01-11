@@ -6,15 +6,16 @@ from argon2 import PasswordHasher
 from argon2.low_level import Type
 
 from config import HASH_MODE, PROTECTION_FLAGS, PEPPER, BCRYPT_COST
-
+#Argon2id configured by project requirements
 _argon2 = PasswordHasher(time_cost=1, memory_cost= 65536, parallelism= 1,type=Type.ID)
 
+#if want to add the protection pepper this function add pepper to the password
 def add_pepper(password):
     if PROTECTION_FLAGS["pepper"]:
         return password + PEPPER
     return password
 
-
+#this function save the password with the hash function that choose, the return us what we save in DB
 def make_password(password):
     pwd = add_pepper(password)
 
@@ -36,7 +37,7 @@ def make_password(password):
 
     raise ValueError(f"Unknown HASH_MODE: {HASH_MODE}")
 
-
+#get password from user and check if its equal to the password in DB , it means that this is the correct password
 def check_password(password, stored_hash, salt, hash_mode):
     pwd = add_pepper(password)
     if hash_mode == "sha256_salt":
