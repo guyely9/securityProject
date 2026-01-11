@@ -44,4 +44,4 @@
 2026-01-09T14:14:50.662854+00:00,medium_user_2,sha256_salt,"pepper, totp, rate_limit, lockout, captcha",brute_force,27.0,No
 2026-01-09T14:16:27.747326+00:00,medium_user_3,sha256_salt,"pepper, totp, rate_limit, lockout, captcha",brute_force,329.0,No
 2026-01-09T14:27:05.356805+00:00,medium_user_4,sha256_salt,"pepper, totp, rate_limit, lockout, captcha",brute_force,90.0,No
-2026-01-09T14:28:34.861373+00:00,medium_user_5,sha256_salt,"pepper, totp, rate_limit, lockout, captcha",brute_force,22466348.0,No
+2026-01-09T14:28:34.861373+00:00,medium_user_5,sha256_salt,"pepper, totp, rate_limit, lockout, captcha",brute_force,50,No
