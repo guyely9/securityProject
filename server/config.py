@@ -12,6 +12,7 @@ RATE_LIMIT_TRY = 5
 RATE_REFILL = 0.1
 RATE_HARD_LOCK = True
 
+# true if want to start the protection and false if not
 PROTECTION_FLAGS = {
     "pepper": False,
     "totp": False,
